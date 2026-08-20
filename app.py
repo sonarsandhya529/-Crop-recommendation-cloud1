@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 
 # OpenWeatherMap API Key
-API_KEY = "c78bc03c5ef520708d5d810783404823"
+API_KEY = "9acd0f1436e8c1375fcd7fd749c1b5cb"
 
 # 1. Page Configuration
 st.set_page_config(page_title="Crop & Fertilizer Recommendation", layout="wide")
