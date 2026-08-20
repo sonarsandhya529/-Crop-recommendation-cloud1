@@ -36,17 +36,15 @@ st.divider()
 # --- LIVE WEATHER FEATURE ---
 st.subheader("🌦️ Get Live Weather via City")
 
-# शहरांची नावे टाईप करण्याऐवजी आपण ड्रॉपडाउन (Selectbox) करूया, जेणेकरून स्पेलिंग चुकणार नाही!
 city = st.selectbox(
     "Tumchya gavatil/shahratil chalu haman sathi nav nivda:", 
     ["Pune", "Mumbai", "Nashik", "Nagpur", "Aurangabad", "Kolhapur", "Solapur", "Other (Type Below)"]
 )
 
-# जर युझरने 'Other' निवडले तरच टाईप करायचा बॉक्स दिसेल
 if city == "Other (Type Below)":
     city = st.text_input("Enter City Name:", "Pune")
 
-# बॅकअप हवामान डेटा (जर इंटरनेट किंवा API चालले नाही तर हे वापरले जाईल)
+# बॅकअप हवामान डेटा
 weather_backup = {
     "pune": {"temp": 25.4, "humidity": 78.0},
     "mumbai": {"temp": 28.5, "humidity": 85.0},
@@ -57,7 +55,6 @@ weather_backup = {
     "solapur": {"temp": 28.0, "humidity": 68.0}
 }
 
-# डिफॉल्ट व्हॅल्यूज
 default_temp = 26.0
 default_humidity = 75.0
 
@@ -70,14 +67,12 @@ if city:
             default_humidity = float(response["main"]["humidity"])
             st.success(f"📍 {city} che Live API haman यशस्वीरित्या लोड झाले!")
         else:
-            # API चा प्रॉब्लेम असल्यास बॅकअप मॅपमधून डेटा घेईल
             city_lower = city.lower()
             if city_lower in weather_backup:
                 default_temp = weather_backup[city_lower]["temp"]
                 default_humidity = weather_backup[city_lower]["humidity"]
                 st.info(f"ℹ️ Smart Backup: {city} चे हवामान डेटाबेसमधून ऑटो-फिल केले आहे.")
     except Exception as weather_error:
-        # इंटरनेट बंद असल्यास बॅकअप मॅपमधून डेटा घेईल
         city_lower = city.lower()
         if city_lower in weather_backup:
             default_temp = weather_backup[city_lower]["temp"]
@@ -98,13 +93,13 @@ with col1:
 
 with col2:
     st.subheader("☁️ Haman (Weather)")
-    # थेट ऑटो-फिल व्हॅल्यूज इथे दिसतील, युझर हव्या तर बदलूही शकतो
     temp = st.number_input("Taapman (Temperature in °C)", min_value=0.0, max_value=50.0, value=default_temp, key="temp_input")
     humidity = st.number_input("Drauvata (Humidity %)", min_value=0.0, max_value=100.0, value=default_humidity, key="humidity_input")
     rainfall = st.number_input("Paus (Rainfall in mm)", min_value=0.0, max_value=500.0, value=150.0)
 
 st.divider()
 
+# --- इथून तुमचा विचारलेला कोड सुरू होतो (फाईलचा शेवटचा भाग) ---
 # 4. Prediction & Fertilizer Recommendation
 if st.button("🌾 Check Results", type="primary"):
     if model_ready:
@@ -112,7 +107,8 @@ if st.button("🌾 Check Results", type="primary"):
         prediction = model.predict(user_data)
         st.balloons()                 
         
-        st.success(f"### 🎉 Tumchya jaminisathi sarvyat uttam pik ahe: **{ prediction[0].upper()}**")
+        # बरोबर केलेला कोड: prediction[0].upper()
+        st.success(f"### 🎉 Tumchya jaminisathi sarvyat uttam pik ahe: **{prediction[0].upper()}**")
         
         st.subheader("💡 Matichya pramananusar khatanchi shifarash (Fertilizer Advice):")
         advice = []
