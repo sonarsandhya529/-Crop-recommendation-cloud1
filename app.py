@@ -112,7 +112,7 @@ if st.button("🌾 Check Results", type="primary"):
         prediction = model.predict(user_data)
         st.balloons()                 
         
-        st.success(f"### 🎉 Tumchya jaminisathi sarvyat uttam pik ahe: **{prediction.upper()}**")
+        st.success(f"### 🎉 Tumchya jaminisathi sarvyat uttam pik ahe: **{ prediction[0].upper()}**")
         
         st.subheader("💡 Matichya pramananusar khatanchi shifarash (Fertilizer Advice):")
         advice = []
