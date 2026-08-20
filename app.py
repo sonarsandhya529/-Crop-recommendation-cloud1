@@ -1,182 +1,172 @@
 import streamlit as st
 import pandas as pd
 import requests
-import plotly.express as px  # Advanced data visualization engine
+import plotly.express as px
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 
-# OpenWeatherMap API Key
+# ------------------------------------------------------------------------------
+# प्रोग्रॅम कॉन्फिगरेशन आणि कॉन्स्टंट्स (Enterprise Configuration)
+# ------------------------------------------------------------------------------
 API_KEY = "c78bc03c5ef520708d5d810783404823"
+WEATHER_API_ENDPOINT = "http://openweathermap.org"
 
-# 1. Page Configuration
-st.set_page_config(page_title="Agri-Smart Enterprise AI", layout="wide", page_icon="🚜")
+# पेज सेटिंग्ज (Professional Wide Layout)
+st.set_page_config(
+    page_title="Agri-Smart Enterprise Management System",
+    layout="wide",
+    page_icon="🚜",
+    initial_sidebar_state="expanded"
+)
 
-# 2. Data Load & Model Training
+# ------------------------------------------------------------------------------
+# मशीन लर्निंग मॉडेल ट्रेनिंग इंजिन (Core Data Processing Engine)
+# ------------------------------------------------------------------------------
 @st.cache_resource
-def load_and_train():
+def initialize_predictive_engine():
+    """ही सिस्टीम डेटासेट लोड करते आणि रँडम फॉरेस्ट अल्गोरिदम वापरून मॉडेल ट्रेन करते."""
     try:
+        # डेटासेट लोड करणे
         df = pd.read_csv("Crop_recommendation.csv")
-        X = df[['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']]
+        features = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
+        
+        X = df[features]
         y = df['label']
         
+        # ८०% ट्रेनिंग आणि २०% टेस्टिंग डेटा स्प्लिट
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        model = RandomForestClassifier(random_state=42)
+        
+        # रँडम फॉरेस्ट क्लासिफायर मॉडेल तयार करणे
+        model = RandomForestClassifier(n_estimators=100, random_state=42)
         model.fit(X_train, y_train)
-        return model, df, True
+        
+        # इंटरनेट बंद असल्यास डेटासेटमधील सरासरी व्हॅल्यूज मॅप करणे (Failsafe Mechanism)
+        fallback_metrics = df.groupby('label').mean().to_dict(orient='index')
+        global_averages = {col: float(df[col].mean()) for col in features}
+        
+        return model, df, fallback_metrics, global_averages, True
     except Exception as e:
-        return None, None, False
+        st.error(f"Critical System Core Deployment Failure: {str(e)}")
+        return None, pd.DataFrame(), {}, {}, False
 
-model, df, model_ready = load_and_train()
+model, master_df, dynamic_fallback_db, global_macro_averages, engine_status = initialize_predictive_engine()
 
-# 3. Sidebar Multi-Page Navigation System
-st.sidebar.title("🚜 Navigation Menu")
-page = st.sidebar.radio("Go to Page:", ["🤖 AI Recommendation Engine", "📊 Market & Soil Data Analytics", "📖 Crop Requirements Guide"])
+# ------------------------------------------------------------------------------
+# डाव्या बाजूचा मुख्य नेव्हिगेशन मेनू (Sidebar Multi-Page Layout)
+# ------------------------------------------------------------------------------
+st.sidebar.title("🚜 Core Modules")
+selected_module = st.sidebar.radio(
+    "Select Operating Environment:",
+    [
+        "🤖 AI Recommendation Engine",
+        "📊 Applied Agrochemical Analytics",
+        "📖 Agronomic Taxonomy Encyclopedia",
+        "💰 Operational Financial Estimator"
+    ]
+)
+
+# डिफॉल्ट हवामान सेट करणे (बॅकअप म्हणून)
+ambient_temperature = global_macro_averages.get('temperature', 25.0)
+ambient_humidity = global_macro_averages.get('humidity', 70.0)
 
 # ==============================================================================
-# PAGE 1: AI RECOMMENDATION ENGINE
+# मॉड्यूल १: एआय पीक शिफारस इंजिन (AI RECOMMENDATION ENGINE)
 # ==============================================================================
-if page == "🤖 AI Recommendation Engine":
-    st.title("🌾 Smart Crop Yield & Fertilizer Recommendation System")
-    st.write("Enter the soil and weather conditions, and AI will tell you which crop to grow!")
+if selected_module == "🤖 AI Recommendation Engine":
+    st.title("🌾 Precision Agriculture Crop & Fertilizer Optimization Engine")
+    st.write("Production Framework: Real-time multivariate optimization engine running on a Random Forest classification model topology.")
     st.divider()
 
-    st.subheader("🌦️ Get Live Weather via City")
-    city = st.selectbox(
-        "Select your village/city name for live weather:", 
-        ["Pune", "Mumbai", "Nashik", "Nagpur", "Aurangabad", "Kolhapur", "Solapur", "Other (Type Below)"]
+    st.subheader("🌦️ Ambient Climate Integration Pipeline")
+    target_geography = st.selectbox(
+        "Select Regional Telemetry Node Location:",
+        ["Pune", "Mumbai", "Nashik", "Nagpur", "Aurangabad", "Kolhapur", "Solapur", "Manual / Override Node Location"]
     )
 
-    if city == "Other (Type Below)":
-        city = st.text_input("Enter City Name:", "Pune")
+    if target_geography == "Manual / Override Node Location":
+        target_geography = st.text_input("Enter Target City Name Specification:", "Pune")
 
-    # Backup Weather Database
-    weather_backup = {
-        "pune": {"temp": 25.4, "humidity": 78.0},
-        "mumbai": {"temp": 28.5, "humidity": 85.0},
-        "nashik": {"temp": 24.8, "humidity": 80.0},
-        "nagpur": {"temp": 29.1, "humidity": 72.0},
-        "aurangabad": {"temp": 26.5, "humidity": 75.0},
-        "kolhapur": {"temp": 25.1, "humidity": 82.0},
-        "solapur": {"temp": 28.0, "humidity": 68.0}
-    }
-
-    default_temp = 26.0
-    default_humidity = 75.0
-
-    if city:
-        url = f"http://openweathermap.org{city}&appid={API_KEY}&units=metric"
+    if target_geography:
+        query_parameters = {"q": target_geography, "appid": API_KEY, "units": "metric"}
         try:
-            response = requests.get(url, timeout=3).json()
-            if response.get("cod") == 200:
-                default_temp = float(response["main"]["temp"])
-                default_humidity = float(response["main"]["humidity"])
-                st.success(f"📍 Live API weather for {city} loaded successfully!")
+            # थेट इंटरनेटवरून लाईव्ह हवामान डेटा मिळवणे
+            telemetry_payload = requests.get(WEATHER_API_ENDPOINT, params=query_parameters, timeout=3).json()
+            if str(telemetry_payload.get("cod")) == "200":
+                ambient_temperature = float(telemetry_payload["main"]["temp"])
+                ambient_humidity = float(telemetry_payload["main"]["humidity"])
+                st.success(f"✅ Real-time telemetry pipeline established. Node: [{target_geography}] values auto-injected successfully.")
             else:
-                city_lower = city.lower()
-                if city_lower in weather_backup:
-                    default_temp = weather_backup[city_lower]["temp"]
-                    default_humidity = weather_backup[city_lower]["humidity"]
-                    st.info(f"ℹ️ Smart Backup: {city} weather loaded from internal database.")
+                target_key = target_geography.lower()
+                if target_key in dynamic_fallback_db:
+                    ambient_temperature = dynamic_fallback_db[target_key].get('temperature', ambient_temperature)
+                    ambient_humidity = dynamic_fallback_db[target_key].get('humidity', ambient_humidity)
+                st.info(f"ℹ️ Operational Safety Default: Falling back to statistical baselines for node validation.")
         except Exception:
-            city_lower = city.lower()
-            if city_lower in weather_backup:
-                default_temp = weather_backup[city_lower]["temp"]
-                default_humidity = weather_backup[city_lower]["humidity"]
-                st.info(f"ℹ️ Smart Backup: {city} weather loaded from internal database.")
+            st.info(f"ℹ️ Network Timeout Fail-safe: Resolving inputs via system microclimatic baselines.")
 
     st.divider()
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("🧪 Soil Components")
-        n = st.number_input("Nitrogen (N Content)", min_value=0, max_value=200, value=40)
-        p = st.number_input("Phosphorus (P Content)", min_value=0, max_value=200, value=40)
-        k = st.number_input("Potassium (K Content)", min_value=0, max_value=300, value=40)
-        ph = st.number_input("Soil pH Level", min_value=0.0, max_value=14.0, value=6.5)
+    # स्क्रीनचे दोन उभ्या कॉलम्समध्ये विभाजन
+    input_column_left, input_column_right = st.columns(2)
+    with input_column_left:
+        st.subheader("🧪 Soil Matrix Chemical Diagnostics")
+        soil_nitrogen = st.number_input("Elemental Nitrogen Content (N - mg/kg)", min_value=0, max_value=250, value=50)
+        soil_phosphorus = st.number_input("Available Phosphorus Content (P - mg/kg)", min_value=0, max_value=250, value=50)
+        soil_potassium = st.number_input("Exchangeable Potassium Content (K - mg/kg)", min_value=0, max_value=350, value=50)
+        soil_ph_level = st.number_input("Soil Active Acidity (pH Logarithmic Scale)", min_value=0.0, max_value=14.0, value=6.5, step=0.1)
 
-    with col2:
-        st.subheader("☁️ Weather Conditions")
-        temp = st.number_input("Temperature in °C", min_value=0.0, max_value=50.0, value=default_temp, key="temp_input")
-        humidity = st.number_input("Humidity %", min_value=0.0, max_value=100.0, value=default_humidity, key="humidity_input")
-        rainfall = st.number_input("Rainfall in mm", min_value=0.0, max_value=500.0, value=150.0)
+    with input_column_right:
+        st.subheader("☁️ Macroclimate Atmospheric Boundaries")
+        input_temp = st.number_input("Mean Ambient Temperature (°C)", min_value=0.0, max_value=60.0, value=ambient_temperature, step=0.1, key="production_temp_node")
+        input_humidity = st.number_input("Relative Air Humidity Percentage (%)", min_value=0.0, max_value=100.0, value=ambient_humidity, step=0.1, key="production_humid_node")
+        estimated_rainfall = st.number_input("Cumulative Seasonal Precipitative Runoff (Rainfall in mm)", min_value=0.0, max_value=600.0, value=150.0, step=10.0)
 
     st.divider()
 
-    if st.button("🌾 Check Results", type="primary"):
-        if model_ready:
-            user_data = [[n, p, k, temp, humidity, ph, rainfall]]
-            prediction = model.predict(user_data)
+    if st.button("🌾 Compute Diagnostics & Execute Predictions", type="primary"):
+        if engine_status and model is not None:
+            multivariate_vector = [[soil_nitrogen, soil_phosphorus, soil_potassium, input_temp, input_humidity, soil_ph_level, estimated_rainfall]]
+            deterministic_prediction = model.predict(multivariate_vector)
             st.balloons()                 
             
-            st.success(f"### 🎉 The absolute best crop for your soil is: **{prediction[0].upper()}**")
+            st.success(f"### 🎯 Optimal Crop Classification Target Resolved: **{deterministic_prediction[0].upper()}**")
             
-            st.subheader("💡 Tailored Chemical Fertilizer Advice:")
-            advice = []
-            if n < 40:
-                advice.append("⚠️ **Low Nitrogen Content:** Please supplement your field using **Urea** or grow nitrogen-fixing legume crops.")
-            elif n > 120:
-                advice.append("✅ **High Nitrogen Content:** Stop adding chemical nitrogen fertilizers to avoid damaging plant roots.")
-                
-            if p < 40:
-                advice.append("⚠️ **Low Phosphorus Content:** Apply **DAP (Di-Ammonium Phosphate)** or Single Super Phosphate (SSP) to improve root growth.")
-                
-            if k < 40:
-                advice.append("⚠️ **Low Potassium Content:** Add **MOP (Muriate of Potash)** to increase pest resilience.")
-                
-            if ph < 6.0:
-                advice.append("⚠️ **Acidic Soil Warning:** Spread **Lime (Chuna)** across the field to normalize and increase the pH scale.")
-            elif ph > 7.5:
-                advice.append("⚠️ **Alkaline Soil Warning:** Mix **Gypsum** into the field soil to lower the high alkaline levels.")
-                
-            if not advice:
-                st.info("👍 Perfect soil structure! Your field chemical properties are extremely well-balanced for farming.")
+            # --- पाणी व्यवस्थापन प्रणाली (Irrigation Sizing Logic) ---
+            st.subheader("💧 Hydraulic Fluid Sizing & Irrigation Architecture Recommendation:")
+            if estimated_rainfall < 100.0:
+                st.warning("⚠️ **High Hydrological Stress Detected:** Sub-surface Drip Irrigation (SDI) layout required to maximize distribution efficiency indices.")
+            elif estimated_rainfall > 250.0:
+                st.info("🌧️ **High Volumetric Runoff Context:** Design deep superficial open drainage ditches to mitigate anaerobic root zone conditions.")
             else:
-                for item in advice:
-                    st.write(item)
+                st.info("✅ **Equilibrium Hydro-Cycle:** Standard overhead mechanized solid-set sprinkler loops are topologically viable.")
+
+            # --- खतांचे वैज्ञानिक नियोजन (Agrochemical Rectification) ---
+            st.subheader("💡 Tailored Chemical Fertilizer Matrix Rectification Sizing:")
+            diagnostic_logs = []
+            if soil_nitrogen < 40:
+                diagnostic_logs.append("⚠️ **Primary Nutrient Deficiency (N):** Apply amide-based **Urea formulations** or introduce rotational leguminous green manures.")
+            elif soil_nitrogen > 120:
+                diagnostic_logs.append("✅ **Nitrogen Toxic Threshold:** Immediately halt organic manure loading cycles to secure structural crop equilibrium.")
+                
+            if soil_phosphorus < 40:
+                diagnostic_logs.append("⚠️ **Secondary Deficiency (P):** Treat with concentrated **DAP (Di-Ammonium Phosphate)** or water-soluble Single Super Phosphate (SSP) lines.")
+                
+            if soil_potassium < 40:
+                diagnostic_logs.append("⚠️ **Potassium Inadequacy Framework:** Apply granulate **MOP (Muriate of Potash)** protocols to build cellular cell-wall elasticity.")
+                
+            if soil_ph_level < 6.0:
+                diagnostic_logs.append("⚠️ **Acidic Substrate Saturation:** Apply processed agricultural **Lime (Calcium Carbonate)** profiles to raise operational base saturation.")
+            elif soil_ph_level > 7.5:
+                diagnostic_logs.append("⚠️ **Alkaline Substrate Satiation:** Incorporate mineral **Gypsum (Calcium Sulfate)** into plowing depths to break down high sodium compounds.")
+                
+            if not diagnostic_logs:
+                st.info("👍 Homeostatic chemical equilibrium achieved. Soil substrate metrics comply with strict farming structural specifications.")
+            else:
+                for log_item in diagnostic_logs:
+                    st.write(log_item)
+        else:
+            st.error("System Runtime Invalidation: The downstream core execution model failed validation passes.")
 
 # ==============================================================================
-# PAGE 2: MARKET & SOIL DATA ANALYTICS
+# मॉड्यूल २: डेटा ॲनालिटिक्स डॅशबोर्ड (APPLIED AGROCHEMICAL ANALYTICS)
 # ==============================================================================
-elif page == "📊 Market & Soil Data Analytics":
-    st.title("📊 Big Data Farming Analytics Dashboard")
-    st.write("Explore chemical charts built straight out of your machine learning dataset.")
-    st.divider()
-    
-    if model_ready:
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.subheader("🌱 Nutrient Distribution Across Crops")
-            feature = st.selectbox("Select Element to Graph:", ["N", "P", "K", "rainfall"])
-            fig1 = px.box(df, x="label", y=feature, title=f"Required levels of {feature} across multiple target crops", color="label")
-            st.plotly_chart(fig1, use_container_width=True)
-            
-        with col2:
-            st.subheader(" Environmental Relationships")
-            fig2 = px.scatter(df, x="temperature", y="humidity", color="label", title="Climatic Clustering of Crops based on Temperature vs Humidity")
-            st.plotly_chart(fig2, use_container_width=True)
-
-# ==============================================================================
-# PAGE 3: CROP REQUIREMENTS GUIDE
-# ==============================================================================
-elif page == "📖 Crop Requirements Guide":
-    st.title("📖 Master Crop Encyclopedia")
-    st.write("Select any crop to retrieve its scientifically backed standard threshold metrics.")
-    st.divider()
-    
-    if model_ready:
-        crop_list = sorted(df['label'].unique())
-        selected_crop = st.selectbox("Choose a Crop to Study:", crop_list)
-        
-        crop_data = df[df['label'] == selected_crop]
-        
-        st.subheader(f" Ideal Ecosystem Metrics for Growing {selected_crop.upper()}")
-        
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Avg Nitrogen (N)", f"{round(crop_data['N'].mean(), 1)} mg/kg")
-        c2.metric("Avg Phosphorus (P)", f"{round(crop_data['P'].mean(), 1)} mg/kg")
-        c3.metric("Avg Potassium (K)", f"{round(crop_data['K'].mean(), 1)} mg/kg")
-        c4.metric("Optimal Soil pH", f"{round(crop_data['ph'].mean(), 2)}")
-        
-        st.markdown("---")
-        st.write(f"This specific dataset contains **{len(crop_data)} field records** to back up this baseline calculation.")
