@@ -8,9 +8,9 @@ from sklearn.ensemble import RandomForestClassifier
 API_KEY = "c78bc03c5ef520708d5d810783404823"
 
 # 1. Page Configuration
-st.set_page_config(page_title="Crop & Fertilizer Recommendation", layout="wide")
+st.set_page_config(page_title="Crop & Fertilizer Recommendation", layout="wide", page_icon="🌾")
 
-# 2. Data Load ani Model Train karu
+# 2. Data Load and Model Training
 @st.cache_resource
 def train_model():
     try:
@@ -28,23 +28,23 @@ def train_model():
 
 model, model_ready = train_model()
 
-# 3. Web App chi Design (UI)
+# 3. Web App User Interface (UI) Design
 st.title("🌾 Crop Yield & Fertilizer Recommendation System")
-st.write("Matiche ani Hamanache praman taka, tumhala konte pik ghyayche te AI sangel!")
+st.write("Enter the soil and weather conditions, and AI will tell you which crop to grow!")
 st.divider()
 
 # --- LIVE WEATHER FEATURE ---
 st.subheader("🌦️ Get Live Weather via City")
 
 city = st.selectbox(
-    "Tumchya gavatil/shahratil chalu haman sathi nav nivda:", 
+    "Select your village/city name for live weather:", 
     ["Pune", "Mumbai", "Nashik", "Nagpur", "Aurangabad", "Kolhapur", "Solapur", "Other (Type Below)"]
 )
 
 if city == "Other (Type Below)":
     city = st.text_input("Enter City Name:", "Pune")
 
-# बॅकअप हवामान डेटा
+# Backup Weather Database (Used if the Live API is down or newly created)
 weather_backup = {
     "pune": {"temp": 25.4, "humidity": 78.0},
     "mumbai": {"temp": 28.5, "humidity": 85.0},
@@ -65,19 +65,19 @@ if city:
         if response.get("cod") == 200:
             default_temp = float(response["main"]["temp"])
             default_humidity = float(response["main"]["humidity"])
-            st.success(f"📍 {city} che Live API haman यशस्वीरित्या लोड झाले!")
+            st.success(f"📍 Live API weather for {city} loaded successfully!")
         else:
             city_lower = city.lower()
             if city_lower in weather_backup:
                 default_temp = weather_backup[city_lower]["temp"]
-                default_humidity = weather_backup[city_lower]["humidity"]
-                st.info(f"ℹ️ Smart Backup: {city} चे हवामान डेटाबेसमधून ऑटो-फिल केले आहे.")
+                default_humidity = weather_backup[city_backup]["humidity"]
+                st.info(f"ℹ️ Smart Backup: {city} weather loaded from internal database.")
     except Exception as weather_error:
         city_lower = city.lower()
         if city_lower in weather_backup:
             default_temp = weather_backup[city_lower]["temp"]
             default_humidity = weather_backup[city_lower]["humidity"]
-            st.info(f"ℹ️ Smart Backup: {city} चे हवामान डेटाबेसमधून ऑटो-फिल केले आहे.")
+            st.info(f"ℹ️ Smart Backup: {city} weather loaded from internal database.")
 
 st.divider()
 
@@ -85,21 +85,20 @@ st.divider()
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("🧪 Mati (Soil Components)")
+    st.subheader("🧪 Soil Components")
     n = st.number_input("Nitrogen (N)", min_value=0, max_value=200, value=40)
     p = st.number_input("Phosphorus (P)", min_value=0, max_value=200, value=40)
     k = st.number_input("Potassium (K)", min_value=0, max_value=300, value=40)
     ph = st.number_input("Soil pH Level", min_value=0.0, max_value=14.0, value=6.5)
 
 with col2:
-    st.subheader("☁️ Haman (Weather)")
-    temp = st.number_input("Taapman (Temperature in °C)", min_value=0.0, max_value=50.0, value=default_temp, key="temp_input")
-    humidity = st.number_input("Drauvata (Humidity %)", min_value=0.0, max_value=100.0, value=default_humidity, key="humidity_input")
-    rainfall = st.number_input("Paus (Rainfall in mm)", min_value=0.0, max_value=500.0, value=150.0)
+    st.subheader("☁️ Weather Conditions")
+    temp = st.number_input("Temperature in °C", min_value=0.0, max_value=50.0, value=default_temp, key="temp_input")
+    humidity = st.number_input("Humidity %", min_value=0.0, max_value=100.0, value=default_humidity, key="humidity_input")
+    rainfall = st.number_input("Rainfall in mm", min_value=0.0, max_value=500.0, value=150.0)
 
 st.divider()
 
-# --- इथून तुमचा विचारलेला कोड सुरू होतो (फाईलचा शेवटचा भाग) ---
 # 4. Prediction & Fertilizer Recommendation
 if st.button("🌾 Check Results", type="primary"):
     if model_ready:
@@ -107,31 +106,30 @@ if st.button("🌾 Check Results", type="primary"):
         prediction = model.predict(user_data)
         st.balloons()                 
         
-        # बरोबर केलेला कोड: prediction[0].upper()
-        st.success(f"### 🎉 Tumchya jaminisathi sarvyat uttam pik ahe: **{prediction[0].upper()}**")
+        st.success(f"### 🎉 The absolute best crop for your soil is: **{prediction[0].upper()}**")
         
-        st.subheader("💡 Matichya pramananusar khatanchi shifarash (Fertilizer Advice):")
+        st.subheader("💡 Tailored Chemical Fertilizer Advice:")
         advice = []
         if n < 40:
-            advice.append("⚠️ **Nitrogen che praman kami ahe:** Jaminith Nitrogen vadhavnyasathi **Urea** kiva hiryavaliche khat vapara.")
+            advice.append("⚠️ **Low Nitrogen Content:** Please supplement your field using **Urea** or grow nitrogen-fixing legume crops.")
         elif n > 120:
-            advice.append("✅ **Nitrogen che praman jast ahe:** Urfa khat takणे tळा, jaminicha baddal thik karnyasathi danyavargiya pike ghya.")
+            advice.append("✅ **High Nitrogen Content:** Stop adding chemical nitrogen fertilizers to avoid damaging plant roots.")
             
         if p < 40:
-            advice.append("⚠️ **Phosphorus che praman kami ahe:** **DAP (Di-Ammonium Phosphate)** kiva Single Super Phosphate (SSP) cha vapor kara.")
+            advice.append("⚠️ **Low Phosphorus Content:** Apply **DAP (Di-Ammonium Phosphate)** or Single Super Phosphate (SSP) to improve root growth.")
             
         if k < 40:
-            advice.append("⚠️ **Potassium che praman kami ahe:** Pikaंची javad vadhavnyasathi **MOP (Muriate of Potash)** khat taka.")
+            advice.append("⚠️ **Low Potassium Content:** Add **MOP (Muriate of Potash)** to improve overall crop immunity and yield quality.")
             
         if ph < 6.0:
-            advice.append("⚠️ **Jameen Aamla (Acidic) ahe:** Maticha pH sudharnyasathi **Chuna (Lime)** vapara.")
+            advice.append("⚠️ **Acidic Soil Warning:** Spread **Lime (Chuna)** across the field to normalize and increase the pH scale.")
         elif ph > 7.5:
-            advice.append("⚠️ **Jameen Khaari (Alkaline) ahe:** Maticha pH kammi karnyasathi **Gypsum** cha vapor kara.")
+            advice.append("⚠️ **Alkaline Soil Warning:** Mix **Gypsum** into the field soil to lower the high alkaline levels.")
             
         if not advice:
-            st.info("👍 Tumchya matitil ghadak vyavasthit ahet, jameen shetisathi uttam ahe!")
+            st.info("👍 Perfect soil structure! Your field chemical properties are extremely well-balanced for farming.")
         else:
             for item in advice:
                 st.write(item)
     else:
-        st.warning("Model tayar nahi ahe, please error check kara.")
+        st.warning("The AI model is not ready. Please check your data files or terminal logs.")
