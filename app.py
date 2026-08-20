@@ -36,7 +36,7 @@ def initialize_predictive_engine():
         model = RandomForestClassifier(n_estimators=100, random_state=42)
         model.fit(X_train, y_train)
         
-        # मॉडेलची अचूकता मोजणे (शिक्षकांसाठी खास फिचर)
+        # मॉडेलची अचूकता मोजणे
         predictions = model.predict(X_test)
         acc = accuracy_score(y_test, predictions) * 100
         
@@ -59,8 +59,8 @@ selected_module = st.sidebar.radio(
     [
         "🤖 AI Recommendation Engine",
         "📊 Applied Agrochemical Analytics",
-        "🎛️ ML Model Performance Metrics", # नवीन पेज जोडले
-        "🧬 AI Leaf Disease Diagnosis (Beta)", # नवीन पेज जोडले
+        "🎛️ ML Model Performance Metrics", 
+        "🧬 AI Leaf Disease Diagnosis (Beta)", 
         "📖 Agronomic Taxonomy Encyclopedia",
         "💰 Operational Financial Estimator"
     ]
@@ -125,12 +125,11 @@ if selected_module == "🤖 AI Recommendation Engine":
         if engine_status and model is not None:
             multivariate_vector = [[soil_nitrogen, soil_phosphorus, soil_potassium, input_temp, input_humidity, soil_ph_level, estimated_rainfall]]
             deterministic_prediction = model.predict(multivariate_vector)
-            crop_name = deterministic_prediction[0]
+            crop_name = deterministic_prediction[0] # [0] जोडून स्ट्रिंग बाहेर काढली
             st.balloons()                 
             
             st.success(f"### 🎯 Optimal Crop Classification Target Resolved: **{crop_name.upper()}**")
             
-            # --- नवीन वेळापत्रक फिचर (Maturity Timeline Dashboard) ---
             st.subheader("📅 Crop Cultivation Timeline & Harvest Schedule:")
             lifecycle_db = {"rice": 120, "maize": 100, "chickpea": 110, "kidneybeans": 90, "pigeonpeas": 180, "mothbeans": 80, "mungbean": 75, "blackgram": 80, "lentil": 110, "pomegranate": 365, "banana": 300, "mango": 1095, "grapes": 365, "watermelon": 85, "apple": 1460, "orange": 1095, "papaya": 270, "coconut": 1825, "cotton": 150, "jute": 120, "coffee": 1095}
             days = lifecycle_db.get(crop_name.lower(), 100)
@@ -148,9 +147,11 @@ if selected_module == "🤖 AI Recommendation Engine":
             if not diagnostic_logs: st.info("👍 Homeostatic chemical equilibrium achieved. Soil substrate metrics comply with strict farming structural specifications.")
             else:
                 for log_item in diagnostic_logs: st.write(log_item)
+        else:
+            st.error("System Runtime Invalidation: The downstream core execution model failed validation passes.")
 
 # ==============================================================================
-# NEW MODULE 2: ML MODEL PERFORMANCE METRICS
+# MODULE 2: ML MODEL PERFORMANCE METRICS
 # ==============================================================================
 elif selected_module == "🎛️ ML Model Performance Metrics":
     st.title("🎛️ Machine Learning Model Performance Analytics")
