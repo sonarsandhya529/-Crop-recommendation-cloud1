@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import requests
 import numpy as np
-import plotly.express as px
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
@@ -11,7 +10,8 @@ from sklearn.metrics import accuracy_score
 # ENTERPRISE CONFIGURATION PARAMETERS
 # ------------------------------------------------------------------------------
 API_KEY = "c78bc03c5ef520708d5d810783404823"
-WEATHER_API_ENDPOINT = "http://openweathermap.org"
+# बदल केला: मूळ आणि बरोबर API Endpoint पत्ता टाकला आहे
+WEATHER_API_ENDPOINT = "https://openweathermap.org"
 
 st.set_page_config(
     page_title="Agri-Smart Enterprise Management System",
@@ -26,13 +26,10 @@ st.set_page_config(
 @st.cache_resource
 def initialize_predictive_engine():
     try:
-        # Step 1: Main CSV file read karne का प्रयास
         try:
             df = pd.read_csv("Crop_recommendation.csv")
-            # Column headers को lowercase में फ़ॉर्मेट करना ताकि एरर न आए
             df.columns = df.columns.str.lower()
         except Exception:
-            # Step 2: अगर CSV नहीं मिलती तो FAILSAFE SYNTHETIC DATASET जनरेट करना
             crops_pool = ["rice", "maize", "chickpea", "cotton", "banana", "mango", "pomegranate"]
             synthetic_rows = []
             np.random.seed(42)
@@ -142,6 +139,7 @@ if selected_module == "🤖 AI Recommendation Engine":
         estimated_rainfall = st.number_input("Cumulative Seasonal Precipitative Runoff (Rainfall in mm)", min_value=0.0, max_value=600.0, value=150.0, step=10.0)
 
     st.divider()
+
     if st.button("🌾 Compute Diagnostics & Execute Predictions", type="primary"):
         if engine_status and model is not None:
             multivariate_vector = [[soil_nitrogen, soil_phosphorus, soil_potassium, input_temp, input_humidity, soil_ph_level, estimated_rainfall]]
@@ -153,7 +151,7 @@ if selected_module == "🤖 AI Recommendation Engine":
             
             st.subheader("📅 Crop Cultivation Timeline & Harvest Schedule:")
             
-            # डिक्शनरी पूर्ण केली आणि आउटपुट दाखवण्यासाठी कोड जोडला
+            # बदल केला: अपूर्ण डिक्शनरी पूर्ण बंद केली आणि आउटपुट कोड जोडला
             lifecycle_db = {
                 "rice": 120, "maize": 100, "chickpea": 110, "kidneybeans": 90, 
                 "pigeonpeas": 180, "mothbeans": 80, "mungbean": 75, "blackgram": 80, 
@@ -165,6 +163,6 @@ if selected_module == "🤖 AI Recommendation Engine":
             st.info(f"⏳ Estimated Crop Lifecycle Duration: **{days} days** from sowing to harvest.")
         else:
             st.error("❌ Machine Learning engine is not initialized properly. Please check your dataset.")
-
-
-           
+else:
+    st.title("🚧 Module Under Construction")
+    st.write("This module or page section is currently under development.")
