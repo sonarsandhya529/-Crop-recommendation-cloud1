@@ -150,19 +150,44 @@ if selected_module == "🤖 AI Recommendation Engine":
             st.success(f"### 🎯 Optimal Crop Classification Target Resolved: **{crop_name.upper()}**")
             
             st.subheader("📅 Crop Cultivation Timeline & Harvest Schedule:")
-            
-            # बदल केला: अपूर्ण डिक्शनरी पूर्ण बंद केली आणि आउटपुट कोड जोडला
             lifecycle_db = {
                 "rice": 120, "maize": 100, "chickpea": 110, "kidneybeans": 90, 
                 "pigeonpeas": 180, "mothbeans": 80, "mungbean": 75, "blackgram": 80, 
                 "lentil": 110, "pomegranate": 365, "banana": 300, "mango": 1095, 
                 "grapes": 365, "cotton": 150
             }
-            
             days = lifecycle_db.get(crop_name.lower(), 120)
             st.info(f"⏳ Estimated Crop Lifecycle Duration: **{days} days** from sowing to harvest.")
         else:
-            st.error("❌ Machine Learning engine is not initialized properly. Please check your dataset.")
-else:
-    st.title("🚧 Module Under Construction")
-    st.write("This module or page section is currently under development.")
+            st.error("❌ Machine Learning engine is not initialized properly. Please check your system configuration.")
+
+# ==============================================================================
+# MODULE 3: ML MODEL PERFORMANCE METRICS
+# ==============================================================================
+elif selected_module == "🎛️ ML Model Performance Metrics":
+    st.title("🎛️ ML Model Performance Metrics & Analytics")
+    st.write("Performance analysis and data distribution of the active Random Forest Classifier model:")
+    st.divider()
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric(label="📈 Model Accuracy", value=f"{model_accuracy:.2f} %", delta="Excellent" if model_accuracy > 90 else "Good")
+    with col2:
+        st.metric(label="📊 Dataset Total Rows", value=len(master_df))
+    with col3:
+        st.metric(label="🌾 Total Crop Classes", value=len(master_df['label'].unique()) if not master_df.empty else 0)
+
+    st.divider()
+
+    if not master_df.empty:
+        st.subheader("📊 Class Distribution in Dataset")
+        st.write("This interactive chart tracks the total number of sample rows available for each individual crop class:")
+        crop_counts = master_df['label'].value_counts().reset_index()
+        crop_counts.columns = ['Crop Name', 'Number of Rows']
+        
+        fig = px.bar(
+            crop_counts, 
+            x='Crop Name', 
+            y='Number of Rows', 
+            title="Number of Samples per Crop Class",
+            color='Number of Rows', 
