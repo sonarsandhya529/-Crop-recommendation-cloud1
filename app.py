@@ -185,9 +185,13 @@ elif selected_module == "🎛️ ML Model Performance Metrics":
         crop_counts = master_df['label'].value_counts().reset_index()
         crop_counts.columns = ['Crop Name', 'Number of Rows']
         
+                # Correctly formatted Plotly Express code block
         fig = px.bar(
             crop_counts, 
             x='Crop Name', 
             y='Number of Rows', 
             title="Number of Samples per Crop Class",
             color='Number of Rows', 
+            color_continuous_scale='Greens'
+        )  # This closing parenthesis was missing or misplaced
+        st.plotly_chart(fig, use_container_width=True)
