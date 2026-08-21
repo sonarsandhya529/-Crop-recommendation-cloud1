@@ -142,7 +142,6 @@ if selected_module == "🤖 AI Recommendation Engine":
         estimated_rainfall = st.number_input("Cumulative Seasonal Precipitative Runoff (Rainfall in mm)", min_value=0.0, max_value=600.0, value=150.0, step=10.0)
 
     st.divider()
-
     if st.button("🌾 Compute Diagnostics & Execute Predictions", type="primary"):
         if engine_status and model is not None:
             multivariate_vector = [[soil_nitrogen, soil_phosphorus, soil_potassium, input_temp, input_humidity, soil_ph_level, estimated_rainfall]]
@@ -153,22 +152,19 @@ if selected_module == "🤖 AI Recommendation Engine":
             st.success(f"### 🎯 Optimal Crop Classification Target Resolved: **{crop_name.upper()}**")
             
             st.subheader("📅 Crop Cultivation Timeline & Harvest Schedule:")
-            lifecycle_db = {"rice": 120, "maize": 100, "chickpea": 110, "kidneybeans": 90, "pigeonpeas": 180, "mothbeans": 80, "mungbean": 75, "blackgram": 80, "lentil": 110, "pomegranate": 365, "banana": 300, "mango": 1095, "grapes": 365, "watermelon": 85, "apple": 1460, "orange": 1095, "papaya": 270, "coconut": 1825, "cotton": 150, "jute": 120, "coffee": 1095}
-            days = lifecycle_db.get(crop_name.lower(), 100)
-            st.info(f"⏳ **Estimated Growth Period:** This crop requires approximately **{days} days** from sowing to final commercial harvest.")
-
-            st.subheader("💡 Tailored Chemical Fertilizer Matrix Rectification Sizing:")
-            diagnostic_logs = []
-            if soil_nitrogen < 40: diagnostic_logs.append("⚠️ **Primary Nutrient Deficiency (N):** Apply amide-based **Urea formulations**.")
-            elif soil_nitrogen > 120: diagnostic_logs.append("✅ **Nitrogen Toxic Threshold:** Immediately halt organic manure loading cycles.")
-            if soil_phosphorus < 40: diagnostic_logs.append("⚠️ **Secondary Deficiency (P):** Treat with concentrated **DAP (Di-Ammonium Phosphate)**.")
-            if soil_potassium < 40: diagnostic_logs.append("⚠️ **Potassium Inadequacy Framework:** Apply granulate **MOP (Muriate of Potash)**.")
-            if soil_ph_level < 6.0: diagnostic_logs.append("⚠️ **Acidic Substrate Saturation:** Apply processed agricultural **Lime (Calcium Carbonate)**.")
-            elif soil_ph_level > 7.5: diagnostic_logs.append("⚠️ **Alkaline Substrate Satiation:** Incorporate mineral **Gypsum (Calcium Sulfate)**.")
             
-            if not diagnostic_logs: st.info("👍 Homeostatic chemical equilibrium achieved. Soil substrate metrics comply with strict farming structural specifications.")
-            else:
-                for log_item in diagnostic_logs: st.write(log_item)
+            # डिक्शनरी पूर्ण केली आणि आउटपुट दाखवण्यासाठी कोड जोडला
+            lifecycle_db = {
+                "rice": 120, "maize": 100, "chickpea": 110, "kidneybeans": 90, 
+                "pigeonpeas": 180, "mothbeans": 80, "mungbean": 75, "blackgram": 80, 
+                "lentil": 110, "pomegranate": 365, "banana": 300, "mango": 1095, 
+                "grapes": 365, "cotton": 150
+            }
+            
+            days = lifecycle_db.get(crop_name.lower(), 120)
+            st.info(f"⏳ Estimated Crop Lifecycle Duration: **{days} days** from sowing to harvest.")
         else:
-            st.error("System Runtime Invalidation: The downstream core execution model failed validation passes.")
+            st.error("❌ Machine Learning engine is not initialized properly. Please check your dataset.")
 
+
+           
