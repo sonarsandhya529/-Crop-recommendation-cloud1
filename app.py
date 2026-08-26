@@ -5,12 +5,12 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
-import plotly.express as px  
+
 # ------------------------------------------------------------------------------
-# ENTERPRISE CONFIGURATION PARAMETERS
+# CONFIGURATION & API PARAMETERS
 # ------------------------------------------------------------------------------
 API_KEY = "c78bc03c5ef520708d5d810783404823"
-# बदल केला: मूळ आणि बरोबर API Endpoint पत्ता टाकला आहे
+# ओपेनवेदरची अधिकृत API एंडपॉईंट लिंक दुरुस्त केली आहे
 WEATHER_API_ENDPOINT = "https://openweathermap.org"
 
 st.set_page_config(
@@ -157,133 +157,32 @@ if selected_module == "🤖 AI Recommendation Engine":
                 "grapes": 365, "cotton": 150
             }
             days = lifecycle_db.get(crop_name.lower(), 120)
-            st.info(f"⏳ Estimated Crop Lifecycle Duration: **{days} days** from sowing to harvest.")
+            st.write(f"📊 या पिकाचा सरासरी कालावधी: **{days} दिवस** आहे.")
         else:
-            st.error("❌ Machine Learning engine is not initialized properly. Please check your system configuration.")
+            st.error("❌ ML मॉडेल इंजिन लोड झालेले नाही. कृपया फाईल तपासा.")
 
 # ==============================================================================
-# MODULE 3: ML MODEL PERFORMANCE METRICS
+# MODULE 2: APPLIED AGROCHEMICAL ANALYTICS
 # ==============================================================================
-elif selected_module == "🎛️ ML Model Performance Metrics":
-    st.title("🎛️ ML Model Performance Metrics & Analytics")
-    st.write("Performance analysis and data distribution of the active Random Forest Classifier model:")
+elif selected_module == "📊 Applied Agrochemical Analytics":
+    st.title("📊 Applied Agrochemical Analytics Dashboard")
+    st.write("या मॉड्यूलमध्ये तुम्ही मातीतील मुख्य रासायनिक घटकांचे विश्लेषण (Nutrient Insights) पाहू शकता.")
     st.divider()
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric(label="📈 Model Accuracy", value=f"{model_accuracy:.2f} %", delta="Excellent" if model_accuracy > 90 else "Good")
-    with col2:
-        st.metric(label="📊 Dataset Total Rows", value=len(master_df))
-    with col3:
-        st.metric(label="🌾 Total Crop Classes", value=len(master_df['label'].unique()) if not master_df.empty else 0)
-
-    st.divider()
-
-    if not master_df.empty:
-        st.subheader("📊 Class Distribution in Dataset")
-        st.write("This interactive chart tracks the total number of sample rows available for each individual crop class:")
-        crop_counts = master_df['label'].value_counts().reset_index()
-        crop_counts.columns = ['Crop Name', 'Number of Rows']
+    if engine_status and not master_df.empty:
+        st.subheader("📈 मातीतील घटकांचे वितरण (Soil Nutrients Distribution)")
+        chart_data = master_df[['n', 'p', 'k']]
+        st.line_chart(chart_data)
         
-                # Correctly formatted Plotly Express code block
-        fig = px.bar(
-            crop_counts, 
-            x='Crop Name', 
-            y='Number of Rows', 
-            title="Number of Samples per Crop Class",
-            color='Number of Rows', 
-            color_continuous_scale='Greens'
-        )  # This closing parenthesis was missing or misplaced
-        st.plotly_chart(fig, use_container_width=True)
-        # ==============================================================================
-# MODULE 4: AI LEAF DISEASE DIAGNOSIS (BETA)
-# ==============================================================================
-elif selected_module == "🧬 AI Leaf Disease Diagnosis (Beta)":
-    st.title("🧬 AI Leaf Disease Diagnosis & Crop Pathology (Beta)")
-    st.write("Upload an image of a crop leaf to detect potential infections, nutritional deficiencies, or pest attacks.")
-    st.divider()
-
-    # Step 1: Image Uploader UI Element
-    uploaded_file = st.file_uploader("Choose a high-resolution leaf image...", type=["jpg", "jpeg", "png"])
-    
-    if uploaded_file is not None:
-        # Display the uploaded leaf image cleanly to the user
-        st.image(uploaded_file, caption="Uploaded Leaf Specimen Telemetry", width=400)
-        
-        # User dropdown selection to assist the lightweight detection pipeline
-        crop_context = st.selectbox(
-            "Select Crop Family Context for Accurate Pathology Mapping:",
-            ["Rice", "Maize", "Cotton", "Banana", "Mango", "Pomegranate", "Other / Unknown"]
-        )
-        
-        st.divider()
-        
-        with st.spinner("Analyzing cell structural patterns and color histograms..."):
-            # A small delay to simulate processing time for user experience
-            import time
-            time.sleep(1.5)
-            
-            # Diagnostic reporting engine database
-            disease_db = {
-                "Rice": {
-                    "condition": "Bacterial Leaf Blight (Xanthomonas oryzae)",
-                    "status": "Warning (Moderate Spread Risk)",
-                    "remedy": "Apply copper-based fungicides immediately. Drain excess standing water from fields and reduce nitrogen fertilizer over-application."
-                },
-                "Maize": {
-                    "condition": "Common Rust (Puccinia sorghi)",
-                    "status": "Alert (High Spore Count Detected)",
-                    "remedy": "Deploy resistant hybrid seeds for next cycle. Spray recommended triazole fungicides if infestation covers more than 10% of total canopy."
-                },
-                "Cotton": {
-                    "condition": "Alternaria Leaf Spot",
-                    "status": "Healthy / Low Risk",
-                    "remedy": "No critical immediate threat. Maintain proper plant spacing and crop rotation practices to keep soil microbes balanced."
-                },
-                "Banana": {
-                    "condition": "Sigatoka Leaf Spot Disease",
-                    "status": "Critical (Action Required)",
-                    "remedy": "Remove and safely burn heavily infected hanging leaves. Spray systemic fungicides mixed with mineral oil bases to arrest fungal development."
-                },
-                "Mango": {
-                    "condition": "Anthracnose Fungal Infection",
-                    "status": "Warning (Early Onset)",
-                    "remedy": "Prune overcrowded dead twigs to increase airflow and sunlight penetration. Spray copper oxychloride before the flowering phase starts."
-                },
-                "Pomegranate": {
-                    "condition": "Bacterial Blight (Oily Spot Disease)",
-                    "status": "Critical (High Contagion Risk)",
-                    "remedy": "Strictly prune infected parts and apply a paste of Bordeaux mixture. Avoid overhead sprinkler systems to stop water-borne bacteria spread."
-                },
-                "Other / Unknown": {
-                    "condition": "General Nutrient Deficiency (Chlorosis)",
-                    "status": "Information Only",
-                    "remedy": "The leaf shows loss of green chlorophyll pigments. Consider conducting a detailed micro-nutrient test focusing on Magnesium and Iron inputs."
-                }
-            }
-            
-            # Fetch report matching the chosen crop
-            diagnosis = disease_db.get(crop_context, disease_db["Other / Unknown"])
-            
-            # Display beautifully organized cards to the user
-            st.subheader("📊 AI Diagnosis Analytical Output Report")
-            
-            col_left, col_right = st.columns(2)
-            with col_left:
-                st.info(f"🦠 **Detected Pathological Condition:** {diagnosis['condition']}")
-            with col_right:
-                # Color code status notifications based on threat level
-                status_text = diagnosis['status']
-                if "Critical" in status_text:
-                    st.error(f"🚨 **System Threat Status:** {status_text}")
-                elif "Warning" in status_text:
-                    st.warning(f"⚠️ **System Threat Status:** {status_text}")
-                else:
-                    st.success(f"✅ **System Threat Status:** {status_text}")
-                    
-            st.subheader("💊 Prescriptive Action & Treatment Roadmap:")
-            st.success(diagnosis['remedy'])
-            
+        st.subheader("📋 डेटाचा सांख्यिकीय सारांश (Data Summary Table)")
+        st.dataframe(master_df.describe())
     else:
-        st.info("💡 Please upload an image file (`.jpg`, `.jpeg`, `.png`) of a plant leaf using the uploader element above to initialize live diagnostics.")
+        st.warning("⚠️ डेटा उपलब्ध नाही. कृपया Crop_recommendation.csv फाईल योग्य फोल्डरमध्ये असल्याची खात्री करा.")
+
+# ==============================================================================
+# REMAINING MODULE PLACEHOLDERS
+# ==============================================================================
+else:
+    st.title("🚧 Module Under Construction")
+    st.info(f"तुम्ही निवडलेले मॉड्यूल **'{selected_module}'** सध्या डेव्हलपमेंट स्टेजमध्ये आहे.")
 
