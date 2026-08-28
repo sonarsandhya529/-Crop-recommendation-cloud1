@@ -183,6 +183,82 @@ elif selected_module == "📊 Applied Agrochemical Analytics":
 # REMAINING MODULE PLACEHOLDERS
 # ==============================================================================
 else:
-    st.title("🚧 Module Under Construction")
-    st.info(f"तुम्ही निवडलेले मॉड्यूल **'{selected_module}'** सध्या डेव्हलपमेंट स्टेजमध्ये आहे.")
+   # ==============================================================================
+# फक्त ML MODEL PERFORMANCE METRICS पेजसाठी नवीन फीचर्स (तुमचा जुना कोड सुरक्षित राहील)
+# ==============================================================================
+elif "🎛️ ML Model Performance Metrics" in selected_module:
+    st.title("🎛️ ML Model Evaluation & Performance Metrics Dashboard")
+    st.write("या पेजवर तुम्हाला आपल्या Random Forest Classifier मॉडेलच्या कामगिरीचे विश्लेषण पाहायला मिळेल.")
+    st.divider()
+
+    if engine_status:
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+        from sklearn.metrics import classification_report, confusion_matrix
+
+        # १. मॉडेल अचूकता दाखवणारी कार्डे (Metrics Cards)
+        col1, col2, col3 = st.columns(3)
+        col1.metric(label="📈 Model Accuracy (अचूकता)", value=f"{model_accuracy:.2f}%")
+        col2.metric(label="🌳 Algorithmic Topology", value="Random Forest")
+        col3.metric(label="📊 Dataset Size", value=f"{len(master_df)} Rows")
+
+        st.divider()
+
+        # २. कन्फ्युजन मॅट्रिक्स (डावीकडे ग्राफ) आणि क्लासिफिकेशन रिपोर्ट (उजवीकडे तक्ता)
+        left_chart, right_chart = st.columns([1.2, 1])
+
+        with left_chart:
+            st.subheader("📊 Confusion Matrix Visualization")
+            
+            # टेस्ट डेटा तयार करून प्रेडिक्शन घेणे
+            features_list = ['n', 'p', 'k', 'temperature', 'humidity', 'ph', 'rainfall']
+            X_test = master_df[features_list].sample(frac=0.2, random_state=42)
+            y_test = master_df.loc[X_test.index, 'label']
+            y_pred = model.predict(X_test)
+            
+            unique_labels = sorted(master_df['label'].unique())
+            cm = confusion_matrix(y_test, y_pred, labels=unique_labels)
+            
+            # हीटमॅप आलेख तयार करणे
+            fig, ax = plt.subplots(figsize=(6, 4.5))
+            sns.heatmap(cm, annot=True, fmt='d', cmap='Greens', 
+                        xticklabels=unique_labels, yticklabels=unique_labels, ax=ax)
+            plt.ylabel('Actual Labels')
+            plt.xlabel('Predicted Labels')
+            plt.xticks(rotation=45, ha='right')
+            plt.tight_layout()
+            st.pyplot(fig)
+
+        with right_chart:
+            st.subheader("📋 Classification Report")
+            st.write("प्रत्येक पिकाचा अचूकता स्कोअर:")
+            
+            report_dict = classification_report(y_test, y_pred, output_dict=True)
+            report_df = pd.DataFrame(report_dict).transpose()
+            st.dataframe(report_df.style.format(precision=2), use_container_width=True)
+
+        st.divider()
+        
+        # ३. वैशिष्ट्यांचे महत्त्व (Feature Importance Bar Chart)
+        st.subheader("🧬 Feature Importance Mapping")
+        
+        importances = model.feature_importances_
+        display_features = ['Nitrogen (N)', 'Phosphorus (P)', 'Potassium (K)', 'Temperature', 'Humidity', 'pH', 'Rainfall']
+        
+        feat_df = pd.DataFrame({'Features': display_features, 'Importance': importances})
+        feat_df = feat_df.sort_values(by='Importance', ascending=True)
+        
+        fig2, ax2 = plt.subplots(figsize=(8, 3))
+        ax2.barh(feat_df['Features'], feat_df['Importance'], color='#1f77b4')
+        ax2.set_xlabel('Relative Importance Score')
+        plt.tight_layout()
+        st.pyplot(fig2)
+
+    else:
+        st.error("मशीन लर्निंग इंजिन लोड न झाल्यामुळे परफॉर्मन्स डेटा दाखवता येत नाही.")
+
+# इतर सर्व पेजेससाठी जुनी बॅकअप सिस्टीम
+else:
+    st.title("🚧 Modules Under Construction")
+    st.write(f"या **'{selected_module}'** मॉड्युलचा कोड अजून लिहिला जात आहे. कृपया मुख्य सिस्टीम तपासा.")
 
